@@ -25,6 +25,9 @@ struct ChatList: View {
                 path.append(newChat)
             }
         }
+        .onAppear {
+            viewModel.refreshChats()
+        }
     }
     
     private var chatList: some View {

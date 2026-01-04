@@ -12,8 +12,17 @@ extension Message {
         case text, file
     }
     
+    enum SenderType: String {
+        case user
+        case agent
+    }
+    
     var type: MessageType {
         get { MessageType(rawValue: typeValue ?? "text") ?? .text }
         set { typeValue = newValue.rawValue }
+    }
+    
+    var senderType: SenderType {
+        get { SenderType(rawValue: senderValue ?? "user") ?? .user}
     }
 }

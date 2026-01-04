@@ -23,6 +23,10 @@ final class ChatListViewModel: ObservableObject {
         }
     }
     
+    func refreshChats() {
+        self.chats = charCurdHandler.getChats()
+    }
+    
     func getChatHandler() -> ChatCRUDHandler {
         self.charCurdHandler
     }

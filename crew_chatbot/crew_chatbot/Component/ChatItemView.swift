@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ChatItemView: View {
-    private let chat: Chat
+    @ObservedObject private var chat: Chat
     
     init(chat: Chat) {
         self.chat = chat
