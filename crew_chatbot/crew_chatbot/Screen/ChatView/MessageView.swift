@@ -16,11 +16,18 @@ struct MessageView: View {
                 Spacer()
             }
             
-            Text(message.text ?? "")
-                .padding(10)
-                .foregroundColor(message.senderType == .user ? Color.white : Color.black)
-                .background(message.senderType == .user ? Color.blue : Color.gray)
-                .cornerRadius(10)
+            VStack(alignment: .leading) {
+                
+                Text(message.text ?? "")
+                    .font(.body)
+                Text(message.timestamp?.toTimeString() ?? "")
+                    .font(.caption)
+                    .frame(alignment: .trailing)
+            }
+            .padding(10)
+            .foregroundColor(message.senderType == .user ? Color.white : Color.black)
+            .background(message.senderType == .user ? Color.blue : Color.gray)
+            .cornerRadius(10)
             
             if !(message.senderType == .user) {
                 Spacer()

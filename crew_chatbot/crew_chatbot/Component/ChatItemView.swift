@@ -23,6 +23,7 @@ struct ChatItemView: View {
                     .font(.caption)
             }
             Text(chat.lastMessage ?? "")
+                .lineLimit(2)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }

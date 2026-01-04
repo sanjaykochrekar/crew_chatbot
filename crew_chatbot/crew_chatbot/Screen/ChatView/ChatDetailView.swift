@@ -25,7 +25,6 @@ struct ChatDetailView: View {
         GeometryReader { geo in
             ScrollViewReader { proxy in
                 ZStack(alignment: .bottom) {
-
                     ScrollView {
                         LazyVStack {
                             ForEach(viewModel.messages) { message in
@@ -36,40 +35,20 @@ struct ChatDetailView: View {
                             if loadingAnswer {
                                 TypingMessageView()
                             }
+                            Spacer()
                             
-                            Divider()
-                                .frame(height: 52 + geo.safeAreaInsets.bottom + 16)
-                                .opacity(0)
-                                .id("LoadingMessage")
                         }
+                        .padding(.top, geo.safeAreaInsets.top)
+                        Divider()
+                            .frame(height: 52 + geo.safeAreaInsets.bottom + 16)
+                            .opacity(0)
+                            .id("LoadingMessage")
                     }
                     .scrollDismissesKeyboard(.interactively)
-                    .defaultScrollAnchor(.bottom)
-
-                    HStack(spacing: 6) {
-                        TextField("Enter message", text: $text)
-                            .lineLimit(0)
-                            .padding(.horizontal)
-                            .frame(height: 32)
-                            .multilineTextAlignment(.leading)
-                            .multilineTextAlignment(
-                                strategy: .layoutBased
-                            )
-                            .frame(maxHeight: 52)
-                            .glassEffect()
-                        
-                        Button {
-                            sendMessage()
-                        } label: {
-                            Image(systemName: "location.north.fill")
-                                .foregroundStyle(.green)
-                                .rotationEffect(.degrees(90), anchor: .center)
-                                .padding()
-                        }
-                        .glassEffect()
-                    }
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, geo.safeAreaInsets.bottom + 16)
+                    .defaultScrollAnchor(.top)
+                    
+                    inputField
+                        .padding(.bottom, geo.safeAreaInsets.bottom + 16)
                 }
                 .ignoresSafeArea(edges: .vertical)
                 .onAppear {
@@ -88,6 +67,32 @@ struct ChatDetailView: View {
                 
             }
         }
+    }
+    
+    private var inputField: some View {
+        HStack(spacing: 6) {
+            TextField("Enter message", text: $text)
+                .lineLimit(0)
+                .padding(.horizontal)
+                .frame(height: 32)
+                .multilineTextAlignment(.leading)
+                .multilineTextAlignment(
+                    strategy: .layoutBased
+                )
+                .frame(maxHeight: 52)
+                .glassEffect()
+            
+            Button {
+                sendMessage()
+            } label: {
+                Image(systemName: "location.north.fill")
+                    .foregroundStyle(.green)
+                    .rotationEffect(.degrees(90), anchor: .center)
+                    .padding()
+            }
+            .glassEffect()
+        }
+        .padding(.horizontal, 24)
     }
     
     func sendMessage() {
