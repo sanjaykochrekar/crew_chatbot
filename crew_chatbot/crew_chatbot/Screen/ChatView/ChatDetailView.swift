@@ -19,7 +19,10 @@ struct ChatDetailView: View {
     @State private var showPhotoPicker = false
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
     @State private var selectedImageData: Data? = nil
-    @State private var avatarImage: Image? = nil
+    @State private var selectedImages: Image? = nil
+    
+    @State private var showCamera = false
+    @State private var capturedImage: UIImage?
     
     init(chat: Chat) {
         self.chat = chat
@@ -42,7 +45,6 @@ struct ChatDetailView: View {
                                 TypingMessageView()
                             }
                             Spacer()
-                            
                         }
                         .padding(.top, geo.safeAreaInsets.top)
                         Divider()
@@ -76,109 +78,130 @@ struct ChatDetailView: View {
                     matching: .images,
                     photoLibrary: .shared()
                 )
-                .onChange(of: selectedPhotoItem) { newItem in
+                .onChange(of: selectedPhotoItem) { _, newItem in
                     Task {
                         if let data = try? await newItem?.loadTransferable(type: Data.self) {
                             selectedImageData = data
                             if let uiImage = UIImage(data: data) {
-                                avatarImage = Image(uiImage: uiImage)
+                                selectedImages = Image(uiImage: uiImage)
                             }
                         }
                     }
                 }
+                .onChange(of: capturedImage) { oldValue, newValue in
+                    if let uiImage = newValue {
+                        selectedImages = Image(uiImage: uiImage)
+                    }
+                }
                 
             }
-            
-          
+        }
+        .fullScreenCover(isPresented: $showCamera) {
+            CameraView(selectedImage: $capturedImage)
         }
        
     }
     
     private var imageContainerHeight: CGFloat {
-        avatarImage == nil ? 0 : 112
+        selectedImages == nil ? 0 : 112
     }
     
     private var inputField: some View {
         VStack(spacing: 8) {
-            if let avatarImage {
-                HStack {
-                    avatarImage
-                        .resizable()
-                        .frame(width: 80, height: 90)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                        .overlay(alignment: .topTrailing) {
-                            Button(action: {
-                                self.avatarImage = nil
-                                selectedPhotoItem = nil
-                            }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .resizable()
-                                    .frame(width: 16, height: 16)
-                                    .foregroundColor(.white)
-                                    .background(Circle().fill(Color.black.opacity(0.5)))
-                            }
-                            .offset(x: 16 / 2, y: -16 / 2)
-                        }
-                        .padding(12)
-                        
-                    Spacer()
-                }
-                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16))
-                .padding(.horizontal, 24)
-            }
+            pickedImageView
             HStack(spacing: 6) {
-                Menu {
-                    Button(action: {
-                        showPhotoPicker.toggle()
-                    }, label: {
-                        Text("Gallery")
-                        Image(systemName: "photo")
-                    })
-                    
-                    Button(action: {}, label: {
-                        Text("Camera")
-                        Image(systemName: "camera.aperture")
-                    })
-                } label: {
-                    Image(systemName: "plus")
-                        .foregroundStyle(.green)
-                        .rotationEffect(.degrees(90), anchor: .center)
-                        .padding()
-                }
-                .glassEffect()
-                
-                Button {
-                    sendMessage()
-                } label: {
-                    
-                }
-                .glassEffect()
-                TextField("Enter message", text: $text)
-                    .lineLimit(0)
-                    .padding(.horizontal)
-                    .frame(minHeight: 32)
-                    .multilineTextAlignment(.leading)
-                    .multilineTextAlignment(
-                        strategy: .layoutBased
-                    )
-                    .frame(maxHeight: 52)
-                    .glassEffect()
-                
-                Button {
-                    sendMessage()
-                } label: {
-                    Image(systemName: "location.north.fill")
-                        .foregroundStyle(.green)
-                        .rotationEffect(.degrees(90), anchor: .center)
-                        .padding()
-                }
-                .glassEffect()
+                filePickerMenu
+                textFieldView
+                sendButton
             }
             .padding(.horizontal, 16)
         }
     }
     
-    func sendMessage() {
+    @ViewBuilder
+    private var pickedImageView: some View {
+        if let selectedImages {
+            HStack {
+                selectedImages
+                    .resizable()
+                    .frame(width: 80, height: 90)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay(alignment: .topTrailing) {
+                        Button(action: {
+                            self.selectedImages = nil
+                            selectedPhotoItem = nil
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .resizable()
+                                .frame(width: 16, height: 16)
+                                .foregroundColor(.white)
+                                .background(Circle().fill(Color.black.opacity(0.5)))
+                        }
+                        .offset(x: 16 / 2, y: -16 / 2)
+                    }
+                    .padding(12)
+                
+                Spacer()
+            }
+            .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16))
+            .padding(.horizontal, 24)
+        }
+    }
+    
+    private var filePickerMenu: some View {
+        Menu {
+            Button(action: {
+                showPhotoPicker.toggle()
+            }, label: {
+                Text("Gallery")
+                Image(systemName: "photo")
+            })
+            
+            Button(action: {
+                showCamera.toggle()
+            }, label: {
+                Text("Camera")
+                Image(systemName: "camera.aperture")
+            })
+        } label: {
+            Image(systemName: "plus")
+                .foregroundStyle(.green)
+                .rotationEffect(.degrees(90), anchor: .center)
+                .padding()
+        }
+        .glassEffect()
+    }
+    
+    private var sendButton: some View {
+        Button {
+            sendMessage()
+        } label: {
+            Image(systemName: "location.north.fill")
+                .foregroundStyle(.green)
+                .rotationEffect(.degrees(90), anchor: .center)
+                .padding()
+        }
+        .glassEffect()
+        .disabled(
+            !(selectedImages == nil || !text
+                .trimmingCharacters(in: .whitespaces).isEmpty)
+        )
+    }
+    
+    private var textFieldView: some View {
+        TextField("Enter message", text: $text)
+            .lineLimit(0)
+            .padding(.horizontal)
+            .frame(minHeight: 32)
+            .multilineTextAlignment(.leading)
+            .multilineTextAlignment(
+                strategy: .layoutBased
+            )
+            .frame(maxHeight: 52)
+            .glassEffect()
+    }
+    
+    private func sendMessage() {
         guard !text.isEmpty else { return }
         viewModel.add(text)
         text = ""

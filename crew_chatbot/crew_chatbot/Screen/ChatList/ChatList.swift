@@ -79,7 +79,7 @@ struct ChatList: View {
         Button {
             showAddChat.toggle()
         } label: {
-            Image(systemName: "plus")
+            Image(systemName: "square.and.pencil")
                 .foregroundStyle(.green)
         }
     }
