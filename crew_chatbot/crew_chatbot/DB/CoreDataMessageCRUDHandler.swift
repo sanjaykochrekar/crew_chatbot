@@ -81,7 +81,6 @@ final class CoreDataMessageCrudHandler: NSObject, MessageCrudHandler {
         newMessage.timestamp = Date()
         newMessage.senderValue = type.rawValue
         newMessage.typeValue = "text"
-        
         newMessage.chat = chat
         
         chat.lastMessage = text

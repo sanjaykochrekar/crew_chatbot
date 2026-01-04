@@ -30,7 +30,8 @@ final class ChatDetailViewModel: ObservableObject {
     }
     
     func add(_ text: String) {
-        messageCrudHandler.add(text, type: .user)
+//        messageCrudHandler.add(text, type: .user)
+        messageCrudHandler.sendFileMessage(path: "https://picsum.photos/id/237/400/400", size: 12898, thumbPath: "")
         debouncer.debounce { [weak self] in
             guard let self else { return }
             getAnswer()
