@@ -21,9 +21,9 @@ struct ChatList: View {
             chatList
         }
         .sheet(isPresented: $showAddChat) {
-            NewChatSheet(onAdd: { newChat in
+            NewChatSheet(crudeHandler: viewModel.getChatHandler()) { newChat in
                 path.append(newChat)
-            })
+            }
         }
     }
     
@@ -56,7 +56,7 @@ struct ChatList: View {
     @ViewBuilder
     private func swipeButton(_ chat: Chat) -> some View {
         Button(role: .destructive) {
-            deleteSpecificChat(chat)
+            viewModel.delete(chat: chat)
         } label: {
             Label("Delete", systemImage: "trash.fill")
         }
@@ -78,30 +78,6 @@ struct ChatList: View {
         } label: {
             Image(systemName: "plus")
                 .foregroundStyle(.green)
-        }
-    }
-    
-    
-    private func deleteChats(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { viewModel.chats[$0] }.forEach(viewContext.delete)
-            
-            do {
-                try viewContext.save()
-            } catch {
-                print("Error deleting chat: \(error)")
-            }
-        }
-    }
-    
-    func deleteSpecificChat(_ chat: Chat) {
-        let context = chat.managedObjectContext
-        context?.delete(chat)
-        
-        do {
-            try context?.save()
-        } catch {
-            print("Failed to delete chat: \(error)")
         }
     }
 }

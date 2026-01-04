@@ -6,34 +6,33 @@
 //
 
 import SwiftUI
-import CoreData
 
 
 struct NewChatSheet: View {
     @Environment(\.dismiss) var dismiss
     @State private var title: String = ""
     
-    
-    // TODO: Inject this as dependency
-    private let crudeHandle: ChatCRUDHandler = CoreDataChatCRUDHandler()
-    
+    private let crudeHandler: ChatCRUDHandler
     private let onAdd: (Chat) -> Void
     
     init(
+        crudeHandler: ChatCRUDHandler,
         onAdd: @escaping (Chat) -> Void
     ) {
+        self.crudeHandler = crudeHandler
         self.onAdd = onAdd
     }
     
     var body: some View {
         NavigationView {
+            // TODO: Reconsider using of Form
             Form {
                 TextField("Chat Title", text: $title)
             }
             .navigationTitle("New Conversation")
             .toolbar {
                 Button("Save") {
-                    guard let chat = crudeHandle.createChat(title: title) else {
+                    guard let chat = crudeHandler.createChat(title: title) else {
                         return
                     }
                     onAdd(chat)
