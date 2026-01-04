@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="24299" systemVersion="25B78" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
+    <entity name="Chat" representedClassName="Chat" syncable="YES">
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="lastMessage" optional="YES" attributeType="String"/>
+        <attribute name="lastMessageTimestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="messages" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Message" inverseName="chat" inverseEntity="Message"/>
+    </entity>
+    <entity name="FileAttachment" representedClassName="FileAttachment" syncable="YES">
+        <attribute name="fileSize" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="path" optional="YES" attributeType="String"/>
+        <attribute name="thumbnailPath" optional="YES" attributeType="String"/>
+        <relationship name="message" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Message" inverseName="file" inverseEntity="Message"/>
+    </entity>
+    <entity name="Message" representedClassName="Message" syncable="YES">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="senderValue" optional="YES" attributeType="String"/>
+        <attribute name="text" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="typeValue" optional="YES" attributeType="String"/>
+        <relationship name="chat" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Chat" inverseName="messages" inverseEntity="Chat"/>
+        <relationship name="file" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FileAttachment" inverseName="message" inverseEntity="FileAttachment"/>
+    </entity>
+</model>
