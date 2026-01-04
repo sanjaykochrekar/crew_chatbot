@@ -17,7 +17,7 @@ protocol MessageCrudHandler: AnyObject {
     func add(_ text: String, type: SenderType) -> Bool
     
     @discardableResult
-    func sendFileMessage(path: String, size: Int64, thumbPath: String) -> Bool
+    func sendFileMessage(path: String, size: Int64, thumbPath: String, type: SenderType) -> Bool
     
     func getMessages() -> [Message]
 }
@@ -90,12 +90,13 @@ final class CoreDataMessageCrudHandler: NSObject, MessageCrudHandler {
         return saveContext()
     }
     
-    func sendFileMessage(path: String, size: Int64, thumbPath: String) -> Bool {
+    func sendFileMessage(path: String, size: Int64, thumbPath: String, type: SenderType = .user) -> Bool {
         let newMessage = Message(context: controller.container.viewContext)
         newMessage.id = UUID()
         newMessage.typeValue = "file"
         newMessage.timestamp = Date()
         newMessage.chat = chat
+        newMessage.senderValue = type.rawValue
         
         // Create the FileAttachment entity
         let fileMeta = FileAttachment(context: controller.container.viewContext)

@@ -11,7 +11,6 @@ import PhotosUI
 
 struct ChatDetailView: View {
     private let chat: Chat
-    @State private var loadingAnswer: Bool = false
     @State private var text: String = ""
     @StateObject private var viewModel: ChatDetailViewModel
     
@@ -41,7 +40,7 @@ struct ChatDetailView: View {
                                     .id(message.id)
                             }
                             
-                            if loadingAnswer {
+                            if viewModel.thinking {
                                 TypingMessageView()
                             }
                             Spacer()
@@ -67,7 +66,7 @@ struct ChatDetailView: View {
                         proxy.scrollTo("LoadingMessage", anchor: .bottom)
                     }
                 }
-                .onChange(of: loadingAnswer) {
+                .onChange(of: viewModel.thinking) {
                     withAnimation {
                         proxy.scrollTo("LoadingMessage", anchor: .bottom)
                     }
@@ -205,19 +204,6 @@ struct ChatDetailView: View {
         guard !text.isEmpty else { return }
         viewModel.add(text)
         text = ""
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            self.loadingAnswer = true
-        }
-        
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
-            withAnimation {
-//                let newMessage = Messagea(content: "Not able to understand", isCurrentUser: false)
-//                messages.append(newMessage)
-                self.loadingAnswer = false
-            }
-        }
     }
 
 }

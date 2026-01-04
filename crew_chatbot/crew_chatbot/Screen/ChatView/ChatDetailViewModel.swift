@@ -7,18 +7,24 @@
 
 import Combine
 import CoreData
+import SwiftUI
 
 final class ChatDetailViewModel: ObservableObject {
     @Published var messages: [Message] = []
+    @Published var thinking: Bool = false
+    
     private let chat: Chat
+    private let bot: Bot
     private let messageCrudHandler: MessageCrudHandler
     private let debouncer = Debouncer(delay: 1.0)
     
     init(
         chat: Chat,
+        bot: Bot = MessageBot(),
         context: NSManagedObjectContext = ChatPersistantController.shared.container.viewContext
     ) {
         self.chat = chat
+        self.bot = bot
         messageCrudHandler = CoreDataMessageCrudHandler(chat: chat)
         
         messages = messageCrudHandler.getMessages()
@@ -30,15 +36,36 @@ final class ChatDetailViewModel: ObservableObject {
     }
     
     func add(_ text: String) {
-//        messageCrudHandler.add(text, type: .user)
-        messageCrudHandler.sendFileMessage(path: "https://picsum.photos/id/237/400/400", size: 12898, thumbPath: "")
+        messageCrudHandler.add(text, type: .user)
         debouncer.debounce { [weak self] in
             guard let self else { return }
-            getAnswer()
+            Task {
+                await self.getAnswer()
+            }
         }
     }
     
-    private func getAnswer() {
+    private func getAnswer() async {
+//        withAnimation {
+            thinking = true
+//        }
         
+        let response = await bot.onResponseRecieved()
+        
+        if case .file(let path) = response {
+            messageCrudHandler
+                .sendFileMessage(
+                    path: path,
+                    size: 12898,
+                    thumbPath: "",
+                    type: .agent
+                )
+        } else if case .text(let text) = response {
+            messageCrudHandler.add(text, type: .agent)
+        }
+        
+//        withAnimation {
+            thinking = false
+//        }
     }
 }
