@@ -6,12 +6,17 @@
 //
 
 import SwiftUI
+import CoreData
 
 @main
 struct crew_chatbotApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environment(
+                    \.managedObjectContext,
+                     ChatPersistantController.shared.container.viewContext
+                )
         }
     }
 }

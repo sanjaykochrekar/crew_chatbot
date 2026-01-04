@@ -10,8 +10,7 @@ import CoreData
 
 protocol ChatCRUDHandler {
     func delete(chat: Chat) -> Bool
-    
-    func add(title: String) -> Chat?
+    func createChat(title: String) -> Chat?
 }
 
 
@@ -22,7 +21,7 @@ final class CoreDataChatCRUDHandler: ChatCRUDHandler {
         return true
     }
 
-    func add(title: String) -> Chat? {
+    func createChat(title: String) -> Chat? {
         let chat = Chat(context: controller.container.viewContext)
         chat.id = UUID()
         chat.title = title
