@@ -34,10 +34,10 @@ struct TypingMessageView: View {
             
             Spacer()
         }
+        .padding(.vertical, 8)
         .padding(.horizontal, 16)
         .onAppear {
             animating = true
         }
-
     }
 }

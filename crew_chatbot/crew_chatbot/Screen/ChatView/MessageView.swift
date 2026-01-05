@@ -51,7 +51,8 @@ struct MessageView: View {
                 Spacer()
             }
         }
-        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .padding(.horizontal, 16)
     }
     
     func getReadableFileSize(_ size: Int64) -> String {

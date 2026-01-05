@@ -35,34 +35,33 @@ struct ChatDetailView: View {
     
     var body: some View {
         ScrollViewReader { proxy in
-            ZStack(alignment: .bottom) {
                 List {
                     ForEach(viewModel.messages) { message in
                         MessageView(message: message)
                             .id(message.id)
                             .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets())
                     }
                     
                     if viewModel.thinking {
                         TypingMessageView()
                             .listRowSeparator(.hidden)
+                            .listRowInsets(EdgeInsets())
                     }
-                    Spacer()
-                        .listRowSeparator(.hidden)
+                    
                     Divider()
                         .listRowSeparator(.hidden)
-                        .frame(height: 16 + imageContainerHeight)
-                        .opacity(0)
+                        .frame(height: 1)
                         .id("LoadingMessage")
+                        .listRowInsets(EdgeInsets())
                 }
-                .listRowSpacing(0)
                 .listStyle(.plain)
                 .defaultScrollAnchor(.bottom)
                 .scrollDismissesKeyboard(.interactively)
-                
-                inputField
-                    .padding(.bottom, 16)
-            }
+                .safeAreaInset(edge: .bottom) {
+                    inputField
+                        .padding(.bottom, 8)
+                }
             .onAppear {
                 proxy.scrollTo("LoadingMessage", anchor: .bottom)
             }
@@ -181,7 +180,7 @@ struct ChatDetailView: View {
         }
         .glassEffect()
         .disabled(
-            !(capturedImage == nil || !text
+            !(capturedImage != nil || !text
                 .trimmingCharacters(in: .whitespaces).isEmpty)
         )
     }
@@ -204,6 +203,7 @@ struct ChatDetailView: View {
         viewModel.add(text, image: capturedImage)
         text = ""
         capturedImage = nil
+        selectedImageData = nil
     }
 
 }
