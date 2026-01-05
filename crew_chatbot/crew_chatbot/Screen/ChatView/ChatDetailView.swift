@@ -34,71 +34,70 @@ struct ChatDetailView: View {
     }
     
     var body: some View {
-        GeometryReader { geo in
-            ScrollViewReader { proxy in
-                ZStack(alignment: .bottom) {
-                    ScrollView {
-                        LazyVStack {
-                            ForEach(viewModel.messages) { message in
-                                MessageView(message: message)
-                                    .id(message.id)
-                            }
-                            
-                            if viewModel.thinking {
-                                TypingMessageView()
-                            }
-                            Spacer()
-                        }
-                        .padding(.top, geo.safeAreaInsets.top)
-                        Divider()
-                            .frame(height: 52 + geo.safeAreaInsets.bottom + 16 + imageContainerHeight)
-                            .opacity(0)
-                            .id("LoadingMessage")
+        ScrollViewReader { proxy in
+            ZStack(alignment: .bottom) {
+                List {
+                    ForEach(viewModel.messages) { message in
+                        MessageView(message: message)
+                            .id(message.id)
+                            .listRowSeparator(.hidden)
                     }
-                    .scrollDismissesKeyboard(.interactively)
-                    .defaultScrollAnchor(.top)
                     
-                    inputField
-                        .padding(.bottom, geo.safeAreaInsets.bottom + 16)
-                }
-                .ignoresSafeArea(edges: .vertical)
-                .onAppear {
-                    proxy.scrollTo("LoadingMessage", anchor: .top)
-                }
-                .onChange(of: viewModel.messages.count) {
-                    withAnimation {
-                        proxy.scrollTo("LoadingMessage", anchor: .bottom)
+                    if viewModel.thinking {
+                        TypingMessageView()
+                            .listRowSeparator(.hidden)
                     }
+                    Spacer()
+                        .listRowSeparator(.hidden)
+                    Divider()
+                        .listRowSeparator(.hidden)
+                        .frame(height: 16 + imageContainerHeight)
+                        .opacity(0)
+                        .id("LoadingMessage")
                 }
-                .onChange(of: viewModel.thinking) {
-                    withAnimation {
-                        proxy.scrollTo("LoadingMessage", anchor: .bottom)
-                    }
-                }
-                .photosPicker(
-                    isPresented: $showPhotoPicker,
-                    selection: $selectedPhotoItem,
-                    matching: .images,
-                    photoLibrary: .shared()
-                )
-                .onChange(of: selectedPhotoItem) { _, newItem in
-                    Task {
-                        if let data = try? await newItem?.loadTransferable(type: Data.self) {
-                            selectedImageData = data
-                            capturedImage = UIImage(data: data)
-                        }
-                    }
-                }
-                .onChange(of: capturedImage) { oldValue, newValue in
-                    capturedImage = newValue
-                }
+                .listRowSpacing(0)
+                .listStyle(.plain)
+                .defaultScrollAnchor(.bottom)
+                .scrollDismissesKeyboard(.interactively)
                 
+                inputField
+                    .padding(.bottom, 16)
             }
+            .onAppear {
+                proxy.scrollTo("LoadingMessage", anchor: .bottom)
+            }
+            .onChange(of: viewModel.messages.count) {
+                withAnimation {
+                    proxy.scrollTo("LoadingMessage", anchor: .bottom)
+                }
+            }
+            .onChange(of: viewModel.thinking) {
+                withAnimation {
+                    proxy.scrollTo("LoadingMessage", anchor: .bottom)
+                }
+            }
+            .photosPicker(
+                isPresented: $showPhotoPicker,
+                selection: $selectedPhotoItem,
+                matching: .images,
+                photoLibrary: .shared()
+            )
+            .onChange(of: selectedPhotoItem) { _, newItem in
+                Task {
+                    if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                        selectedImageData = data
+                        capturedImage = UIImage(data: data)
+                    }
+                }
+            }
+            .onChange(of: capturedImage) { oldValue, newValue in
+                capturedImage = newValue
+            }
+            
         }
         .fullScreenCover(isPresented: $showCamera) {
             CameraView(selectedImage: $capturedImage)
         }
-       
     }
     
     private var imageContainerHeight: CGFloat {
@@ -201,7 +200,7 @@ struct ChatDetailView: View {
     }
     
     private func sendMessage() {
-        guard !text.isEmpty else { return }
+        guard !text.isEmpty || capturedImage != nil  else { return }
         viewModel.add(text, image: capturedImage)
         text = ""
         capturedImage = nil
