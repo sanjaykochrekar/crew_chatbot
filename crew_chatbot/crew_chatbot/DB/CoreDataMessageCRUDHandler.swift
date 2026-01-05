@@ -6,7 +6,7 @@
 //
 
 import CoreData
-
+import UIKit
 
 typealias MessageUpdateAction = ([Message]) -> Void
 
@@ -14,7 +14,7 @@ protocol MessageCrudHandler: AnyObject {
     var onMessagesUpadte: MessageUpdateAction? { get set }
 
     @discardableResult
-    func add(_ text: String, type: SenderType) -> Bool
+    func add(_ text: String, type: SenderType, image: UIImage?) -> Bool
     
     @discardableResult
     func sendFileMessage(path: String, size: Int64, thumbPath: String, type: SenderType) -> Bool
@@ -74,14 +74,32 @@ final class CoreDataMessageCrudHandler: NSObject, MessageCrudHandler {
         return fetchedResultsController?.fetchedObjects ?? []
     }
     
-    func add(_ text: String, type: SenderType = .user) -> Bool {
+    func add(_ text: String, type: SenderType, image: UIImage?) -> Bool {
+
         let newMessage = Message(context: controller.container.viewContext)
         newMessage.id = UUID()
         newMessage.text = text
         newMessage.timestamp = Date()
         newMessage.senderValue = type.rawValue
-        newMessage.typeValue = "text"
         newMessage.chat = chat
+        
+        let imageSaver: ImageSaver = ImageSaver()
+        
+        if let image {
+            let fileMeta = FileAttachment(context: controller.container.viewContext)
+            fileMeta.path = imageSaver.writeToDisk(
+                image: image,
+                imageName: newMessage.id?.uuidString ?? "Need to handle"
+            )
+            
+            //TODO: Size uidate size
+            fileMeta.fileSize = 2413
+            fileMeta.thumbnailPath = "thumbPath"
+            newMessage.file = fileMeta
+            newMessage.typeValue = "file"
+        } else {
+            newMessage.typeValue = "text"
+        }
         
         chat.lastMessage = text
         chat.lastMessageTimestamp = Date()
@@ -90,6 +108,7 @@ final class CoreDataMessageCrudHandler: NSObject, MessageCrudHandler {
         return saveContext()
     }
     
+    // Can be replaced by add function, This is only used for bot
     func sendFileMessage(path: String, size: Int64, thumbPath: String, type: SenderType = .user) -> Bool {
         let newMessage = Message(context: controller.container.viewContext)
         newMessage.id = UUID()

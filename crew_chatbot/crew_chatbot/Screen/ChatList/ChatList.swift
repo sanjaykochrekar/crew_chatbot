@@ -1,9 +1,9 @@
-    //
-    //  ChatList.swift
-    //  crew_chatbot
-    //
-    //  Created by Sanju on 04/01/26.
-    //
+//
+//  ChatList.swift
+//  crew_chatbot
+//
+//  Created by Sanju on 04/01/26.
+//
 
 import SwiftUI
 import CoreData
@@ -12,21 +12,26 @@ import CoreData
 struct ChatList: View {
     @State private var showAddChat: Bool = false
     @State private var path = NavigationPath()
-    @Environment(\.managedObjectContext) private var viewContext
-    @StateObject private var viewModel: ChatListViewModel = ChatListViewModel()
+    @StateObject private var viewModel: ChatListViewModel
     
+    init(chatCrudHandler: ChatCRUDHandler) {
+        self._viewModel = StateObject(
+            wrappedValue: ChatListViewModel(
+                chatCurdHandler: chatCrudHandler
+            )
+        )
+    }
     
     var body: some View {
         NavigationStack(path: $path) {
             chatList
         }
         .sheet(isPresented: $showAddChat) {
-            NewChatSheet(crudeHandler: viewModel.getChatHandler()) { newChat in
+            NewChatSheet(
+                crudeHandler: viewModel.getChatHandler()
+            ) { newChat in
                 path.append(newChat)
             }
-        }
-        .onAppear {
-            viewModel.refreshChats()
         }
     }
     

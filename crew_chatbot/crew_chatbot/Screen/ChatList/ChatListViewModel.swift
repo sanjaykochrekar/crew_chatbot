@@ -9,29 +9,25 @@ import CoreData
 import Combine
 
 final class ChatListViewModel: ObservableObject {
-    private let charCurdHandler: ChatCRUDHandler
+    private let chatCurdHandler: ChatCRUDHandler
 
     @Published var chats: [Chat] = []
     
-    init(charCurdHandler: ChatCRUDHandler = CoreDataChatCRUDHandler()) {
-        self.charCurdHandler = charCurdHandler
-        self.chats = charCurdHandler.getChats()
+    init(chatCurdHandler: ChatCRUDHandler) {
+        self.chatCurdHandler = chatCurdHandler
+        self.chats = chatCurdHandler.getChats()
         
-        charCurdHandler.onUpdateChat = { [weak self] list in
+        chatCurdHandler.onUpdateChat = { [weak self] list in
             guard let self else { return }
             chats = list
         }
     }
     
-    func refreshChats() {
-        self.chats = charCurdHandler.getChats()
-    }
-    
     func getChatHandler() -> ChatCRUDHandler {
-        self.charCurdHandler
+        self.chatCurdHandler
     }
     
     func delete(chat: Chat) {
-        charCurdHandler.delete(chat: chat)
+        chatCurdHandler.delete(chat: chat)
     }
 }

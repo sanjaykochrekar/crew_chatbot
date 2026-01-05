@@ -14,18 +14,22 @@ struct ChatDetailView: View {
     @State private var text: String = ""
     @StateObject private var viewModel: ChatDetailViewModel
     
-    
     @State private var showPhotoPicker = false
     @State private var selectedPhotoItem: PhotosPickerItem? = nil
     @State private var selectedImageData: Data? = nil
-    @State private var selectedImages: Image? = nil
     
     @State private var showCamera = false
     @State private var capturedImage: UIImage?
     
     init(chat: Chat) {
         self.chat = chat
-        let vm = ChatDetailViewModel(chat: chat)
+        let messageCrudHandler = CoreDataMessageCrudHandler(chat: chat)
+        let bot = MessageBot()
+        let vm = ChatDetailViewModel(
+            chat: chat,
+            messageCrudHandler: messageCrudHandler,
+            bot: bot
+        )
         self._viewModel = StateObject(wrappedValue: vm)
     }
     
@@ -81,16 +85,12 @@ struct ChatDetailView: View {
                     Task {
                         if let data = try? await newItem?.loadTransferable(type: Data.self) {
                             selectedImageData = data
-                            if let uiImage = UIImage(data: data) {
-                                selectedImages = Image(uiImage: uiImage)
-                            }
+                            capturedImage = UIImage(data: data)
                         }
                     }
                 }
                 .onChange(of: capturedImage) { oldValue, newValue in
-                    if let uiImage = newValue {
-                        selectedImages = Image(uiImage: uiImage)
-                    }
+                    capturedImage = newValue
                 }
                 
             }
@@ -102,7 +102,7 @@ struct ChatDetailView: View {
     }
     
     private var imageContainerHeight: CGFloat {
-        selectedImages == nil ? 0 : 112
+        capturedImage == nil ? 0 : 112
     }
     
     private var inputField: some View {
@@ -119,16 +119,16 @@ struct ChatDetailView: View {
     
     @ViewBuilder
     private var pickedImageView: some View {
-        if let selectedImages {
+        if let capturedImage {
             HStack {
-                selectedImages
+                Image(uiImage: capturedImage)
                     .resizable()
                     .frame(width: 80, height: 90)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(alignment: .topTrailing) {
                         Button(action: {
-                            self.selectedImages = nil
-                            selectedPhotoItem = nil
+                            self.capturedImage = nil
+                            self.selectedPhotoItem = nil
                         }) {
                             Image(systemName: "xmark.circle.fill")
                                 .resizable()
@@ -182,7 +182,7 @@ struct ChatDetailView: View {
         }
         .glassEffect()
         .disabled(
-            !(selectedImages == nil || !text
+            !(capturedImage == nil || !text
                 .trimmingCharacters(in: .whitespaces).isEmpty)
         )
     }
@@ -202,8 +202,9 @@ struct ChatDetailView: View {
     
     private func sendMessage() {
         guard !text.isEmpty else { return }
-        viewModel.add(text)
+        viewModel.add(text, image: capturedImage)
         text = ""
+        capturedImage = nil
     }
 
 }

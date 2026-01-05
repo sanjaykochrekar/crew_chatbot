@@ -6,7 +6,6 @@
 //
 
 import Combine
-import CoreData
 import SwiftUI
 
 final class ChatDetailViewModel: ObservableObject {
@@ -20,12 +19,12 @@ final class ChatDetailViewModel: ObservableObject {
     
     init(
         chat: Chat,
-        bot: Bot = MessageBot(),
-        context: NSManagedObjectContext = ChatPersistantController.shared.container.viewContext
+        messageCrudHandler: MessageCrudHandler,
+        bot: Bot
     ) {
         self.chat = chat
         self.bot = bot
-        messageCrudHandler = CoreDataMessageCrudHandler(chat: chat)
+        self.messageCrudHandler = messageCrudHandler
         
         messages = messageCrudHandler.getMessages()
         
@@ -35,8 +34,8 @@ final class ChatDetailViewModel: ObservableObject {
         }
     }
     
-    func add(_ text: String) {
-        messageCrudHandler.add(text, type: .user)
+    func add(_ text: String, image: UIImage? = nil) {
+        messageCrudHandler.add(text, type: .user, image: image)
         debouncer.debounce { [weak self] in
             guard let self else { return }
             Task {
@@ -46,9 +45,7 @@ final class ChatDetailViewModel: ObservableObject {
     }
     
     private func getAnswer() async {
-//        withAnimation {
-            thinking = true
-//        }
+        thinking = true
         
         let response = await bot.onResponseRecieved()
         
@@ -61,11 +58,9 @@ final class ChatDetailViewModel: ObservableObject {
                     type: .agent
                 )
         } else if case .text(let text) = response {
-            messageCrudHandler.add(text, type: .agent)
+            messageCrudHandler.add(text, type: .agent, image: nil)
         }
         
-//        withAnimation {
-            thinking = false
-//        }
+        thinking = false
     }
 }
